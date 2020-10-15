@@ -1,0 +1,42 @@
+using System;
+using System.Collections;
+
+/////////////////////////////////////////////////////////////////////////////
+
+public class ImagesList
+{
+  ArrayList images= new ArrayList();
+  
+  public ImagesList()
+    {}
+  
+  public ImageItem this[ int index ]
+    {
+    get
+      {
+      return (ImageItem) images[index];
+      }
+    }
+
+  public int Count
+    {
+    get
+      {
+      return images.Count;
+      }
+    }
+
+  public ImageItem Add( SlideShow slide_show,
+                        int image_index,
+                        string preview_url,
+                        string image_url )
+    {
+    ImageItem item= new ImageItem( slide_show, image_index, preview_url,image_url );
+
+    images.Add(item);
+
+    return item;
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////

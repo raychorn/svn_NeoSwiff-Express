@@ -1,0 +1,154 @@
+using System;
+using System.Drawing;
+using System.Timers;
+using System.Windows.Forms;
+
+/////////////////////////////////////////////////////////////////////////////
+
+public class FirefoxRoller : System.Windows.Forms.Control
+{
+  const double dot_radius= 2;
+  const double radius= 6;
+
+  PlayerTimer timer= null;
+  int index= 0;
+  int frame= 0;
+  
+  Visual[] dots= null;
+
+  Color color= Color.White;
+    
+  public FirefoxRoller()
+    {
+    this.SetStyle( ControlStyles.Opaque, true );
+    }
+
+  protected override Size DefaultSize
+    {
+    get
+      {
+      int s= (int)(dot_radius+radius)*2;
+      return new Size(s,s);
+      }
+    }
+
+  public Color Color
+    {
+    get
+      {
+      return color;
+      }
+    set
+      {
+      color= value;
+      }
+    }
+
+  const double SQRT1_2= 0.70710678118654752440;
+  
+  void realize()
+    {
+    dots= new Visual[8];
+    
+    double r= dot_radius+radius;
+    Visual v= this.Visual;
+    
+    dots[0]= new Visual( v, r+(radius-dot_radius), r-dot_radius );
+    dots[0].BeginSolidFill(color);
+      dots[0].DrawEllipse(0,0,4,4);
+    dots[0].EndFill();
+    
+    dots[1]= new Visual( v,
+                         r + (radius * SQRT1_2) - dot_radius, 
+                         r - (radius * SQRT1_2) - dot_radius );
+    dots[1].BeginSolidFill(color);
+      dots[1].DrawEllipse(0,0,4,4);
+    dots[1].EndFill();
+
+    dots[2]= new Visual( v, r-dot_radius, 0 );
+    dots[2].BeginSolidFill(color);
+      dots[2].DrawEllipse(0,0,4,4);
+    dots[2].EndFill();
+
+    dots[3]= new Visual( v,
+                         r - (radius * SQRT1_2) - dot_radius, 
+                         r - (radius * SQRT1_2) - dot_radius );
+    dots[3].BeginSolidFill(color);
+      dots[3].DrawEllipse(0,0,4,4);
+    dots[3].EndFill();
+
+    dots[4]= new Visual( v, 0, r-dot_radius );
+    dots[4].BeginSolidFill(color);
+      dots[4].DrawEllipse(0,0,4,4);
+    dots[4].EndFill();
+
+    dots[5]= new Visual( v,
+                         r - (radius * SQRT1_2) - dot_radius, 
+                         r + (radius * SQRT1_2) - dot_radius );
+    dots[5].BeginSolidFill(color);
+      dots[5].DrawEllipse(0,0,4,4);
+    dots[5].EndFill();
+
+    dots[6]= new Visual( v, r-dot_radius, r+(radius-dot_radius) );
+    dots[6].BeginSolidFill(color);
+      dots[6].DrawEllipse(0,0,4,4);
+    dots[6].EndFill();
+
+    dots[7]= new Visual( v,
+                         r + (radius * SQRT1_2) - dot_radius, 
+                         r + (radius * SQRT1_2) - dot_radius );
+    dots[7].BeginSolidFill(color);
+      dots[7].DrawEllipse(0,0,4,4);
+    dots[7].EndFill();
+    }
+
+  public void Start()
+    {
+    if( timer == null )
+      {
+      timer= new PlayerTimer();
+      timer.Tick += new EventHandler(on_timer);
+      timer.Start();
+      }
+    }
+
+  public void Stop()
+    {
+    if( timer != null )
+      {
+      timer.Stop();
+      timer= null;
+      }
+    }
+
+  void on_timer( object sender, EventArgs e )
+    {
+    OnTimer();
+    }
+    
+  public void OnTimer()
+    {
+    frame++;
+    if( frame % 2 == 0 )
+      {
+      index++;
+      Invalidate();
+      }
+    }
+
+  protected override void OnPaint( PaintEventArgs e )
+    {
+    if( dots == null )
+      realize();
+      
+    for( int i= 0; i < 8; ++i )
+      {
+      int j= index+i;
+      if( j >= 8 )
+        j= j % 8;
+      dots[j].Alpha= (int)(255.0 * ((double)(i+1))/8.0);
+      }
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////

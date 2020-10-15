@@ -1,0 +1,230 @@
+using System;
+using System.Diagnostics;
+using System.Drawing;
+using System.Windows.Forms;
+
+using System.Timers;
+using System.Animation.EasyOut;
+
+/////////////////////////////////////////////////////////////////////////////
+
+public class PreviewImage: Control
+{
+  public const int PreviewWidth= 30;
+  public const int PreviewHeight= PreviewWidth * 45 / 60;
+
+  AsyncImage image= null;
+
+  PlayerTimer timer= null;
+  AnimatedInteger alpha_anim= null;
+  AnimatedDouble scale_anim= null;
+
+  int image_index= 0;
+
+  public PreviewImage( int image_index )
+    {
+    this.image_index= image_index;
+
+    base.SetStyle( ControlStyles.Selectable, false );
+    base.SetStyle( ControlStyles.Opaque, true );
+    }
+
+  protected override Size DefaultSize
+    {
+    get
+      {
+      return new Size( PreviewWidth, PreviewHeight );
+      }
+    }
+
+  public override void Dispose()
+    {
+    if( timer != null )
+      {
+      timer.Stop();
+      timer= null;
+      }
+
+    if( image != null )
+      {
+      image.Dispose();
+      image= null;
+      }
+
+    base.Dispose();
+    }
+
+  public int ImageIndex
+    {
+    get
+      {
+      return image_index;
+      }
+    }
+
+  protected override void OnPaint( PaintEventArgs e )
+    {
+    Visual v= this.Visual;
+
+    Previews previews= (Previews) this.Parent;
+
+    if( previews.SelectedImage == image_index-1 )
+      {
+      v.BeginSolidFill(0xFF0000);
+        v.DrawFrame(-1,-1,ClientSize.Width+2,ClientSize.Height+2,2);
+      v.EndFill();
+      }
+    else
+      {
+      v.BeginSolidFill(0x000000);
+        v.DrawFrame(this.ClientRectangle,1);
+      v.EndFill();
+      }
+
+    v.BeginSolidFill( Color.FromArgb(128,Control.DefaultBackColor) );
+      v.DrawRectangle( 1, 1, ClientSize.Width-2, ClientSize.Height-2 );
+    v.EndFill();
+
+    Size size= ClientSize;
+
+    int d= 2;
+    int a= 80;
+    v.BeginHorizontalGradientFill( 0x000000, a,
+                                   0x000000, 0,
+                                   size.Width, d );
+      v.DrawRectangle( size.Width, 0, d, size.Height );
+    v.EndFill();
+
+    v.BeginVerticalGradientFill( 0x000000, a,
+                                 0x000000, 0,
+                                 size.Height, d );
+      v.DrawRectangle( 0, size.Height, size.Width, d );
+    v.EndFill();
+    }
+
+  public bool IsLoadingStarted
+    {
+    get
+      {
+      return image != null;
+      }
+    }
+
+  public bool IsLoaded
+    {
+    get
+      {
+      return image != null && image.IsLoadCompleted;
+      }
+    }
+
+  public void StartLoading( string url )
+    {
+    Debug.Assert( image == null );
+    image= new AsyncImage( this.Visual, 1, 1 );
+    image.Visible= false;
+    image.LoadTimeout= -1;
+    image.LoadStateChanged += new EventHandler(on_loading_state);
+    image.Load(url);
+    }
+
+  void start_timer()
+    {
+    if( timer == null )
+      {
+      timer= new PlayerTimer();
+      timer.Tick += new EventHandler(on_anim);
+      timer.Start();
+      }
+    }
+
+  private void on_loading_state( object sender, EventArgs e )
+    {
+    //    Debug.WriteLine( "on_loading_state: "+image.LoadState );
+    switch( image.LoadState )
+      {
+      case LoadState.Completed:
+        image.Width= PreviewImage.PreviewWidth-2;
+        image.Height= PreviewImage.PreviewHeight-2;
+
+        image.Alpha= 0;
+        image.Visible= true;
+
+        alpha_anim= new AnimatedInteger(0);
+        alpha_anim.FinalValue= 255;
+        alpha_anim.Speed= 0.5;
+        start_timer();
+
+        break;
+      case LoadState.Timeout:
+      case LoadState.Error:
+        image.Dispose();
+        image= null;
+        break;
+      }
+    }
+
+  private void on_anim( object sender, EventArgs e )
+    {
+    if( alpha_anim != null )
+      {
+      alpha_anim.OnTimer();
+      image.Alpha= alpha_anim.Value;
+      if( !alpha_anim.IsAnimating )
+        alpha_anim= null;
+      }
+
+    if( scale_anim != null )
+      {
+      scale_anim.OnTimer();
+      _scale_image( scale_anim.Value );
+      if( !scale_anim.IsAnimating )
+        scale_anim= null;
+      }
+
+    if( alpha_anim == null && scale_anim == null )
+      {
+      timer.Stop();
+      timer= null;
+      }
+    }
+
+  void _scale_image( double delta )
+    {
+    Visual v= this.Visual;
+    v.ScaleX= (PreviewImage.PreviewWidth+delta*2) / (double)PreviewImage.PreviewWidth;
+    v.ScaleY= (PreviewImage.PreviewHeight+delta*2) / (double)PreviewImage.PreviewHeight;
+    v.X= -delta;
+    v.Y= -delta;
+    }
+
+  void scale_image( double start, double delta )
+    {
+    if( scale_anim == null )
+      {
+      scale_anim= new AnimatedDouble(start);
+      scale_anim.Speed= 0.4;
+      }
+
+    scale_anim.FinalValue= delta;
+    start_timer();
+    }
+
+  protected override void OnMouseEnter( EventArgs e )
+    {
+    if( IsLoaded )
+      scale_image(0,4);
+
+    base.OnMouseEnter(e);
+    }
+
+  protected override void OnMouseLeave( EventArgs e )
+    {
+    if( IsLoaded )
+      scale_image(4,0);
+
+    base.OnMouseLeave(e);
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////

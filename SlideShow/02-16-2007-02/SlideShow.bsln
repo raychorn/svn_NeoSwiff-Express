@@ -1,0 +1,46 @@
+<DioneSolution
+    ProductVersion = "1"
+>
+    <Projects>
+        <Project
+            Name = "SlideShow"
+            RelPath = "SlideShow.ccsproj"
+            ProjectGuid = "{5290D002-5ADD-4E72-BDAA-997D4BB4A46D}"
+            ProjectType = "{577f8c94-7131-11d4-8460-525400eb897b}"
+            StartupProject = "true"
+        >
+            <Dependencies>
+            </Dependencies>
+        </Project>
+    </Projects>
+    <Globals>
+        <SolutionConfigurations>
+            <SolutionConfiguration
+                Name = "Debug"
+                Active = "false"
+            >
+                <ProjectConfiguration
+                    ProjectGuid = "{5290D002-5ADD-4E72-BDAA-997D4BB4A46D}"
+                    Configuration = "Debug"
+                    Platform = "Flash 7-8"
+                    ShouldBuild = "true"
+                    ShouldDeploy = "false"
+                />
+            </SolutionConfiguration>
+            <SolutionConfiguration
+                Name = "Release"
+                Active = "true"
+            >
+                <ProjectConfiguration
+                    ProjectGuid = "{5290D002-5ADD-4E72-BDAA-997D4BB4A46D}"
+                    Configuration = "Release"
+                    Platform = "Flash 7-8"
+                    ShouldBuild = "true"
+                    ShouldDeploy = "false"
+                />
+            </SolutionConfiguration>
+        </SolutionConfigurations>
+        <SolutionItems>
+        </SolutionItems>
+    </Globals>
+</DioneSolution>

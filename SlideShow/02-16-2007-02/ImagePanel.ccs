@@ -1,0 +1,221 @@
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+using System.Timers;
+using System.Animation.EasyOut;
+
+/////////////////////////////////////////////////////////////////////////////
+
+public class ImagePanel: Control
+{
+  SlideShow slide_show;
+  
+  int curr_image_index= -1; // loaded
+  int next_image_index= -1; // loading
+
+  PlayerTimer loading_timer= null;
+  PlayerTimer fading_timer= null;
+  AnimatedInteger alpha_anim= null;
+
+  FirefoxRoller roller= null;
+
+  public ImagePanel( SlideShow slide_show )
+    {
+    this.slide_show= slide_show;
+    base.SetStyle( ControlStyles.Opaque, true );
+    }
+
+  public ImageItem GetImage( int index )
+    {
+    return (index>=0) ? slide_show.images[index] : null;
+    }
+
+  public LargeImage GetLargeImage( int index )
+    {
+    ImageItem image= GetImage(index);
+    if( image == null )
+      return null;
+    return image.Large;
+    }
+
+  public void ViewNextImage()
+    {
+    int next= -1;
+    if( next_image_index >= 0 )
+      next= next_image_index+1;
+    else
+      next= curr_image_index+1;
+    
+    if( next < 0 )
+      next= 0;
+    
+    if( next >= slide_show.images.Count )
+      next= 0;
+
+    ViewImage(next);
+    }
+
+  public void ViewPrevImage()
+    {
+    int prev= -1;
+    if( next_image_index >= 0 )
+      prev= next_image_index-1;
+    else
+      prev= curr_image_index-1;
+
+    if( prev < 0 )
+      prev= slide_show.images.Count-1;
+      
+    ViewImage(prev);
+    }
+
+  public void ViewImage( int image_index )
+    {
+    if( image_index == curr_image_index ||
+        image_index == next_image_index )
+      return;
+      
+    if( image_index < 0 || image_index >= slide_show.images.Count )
+      return;
+
+    LargeImage next_image= GetLargeImage(next_image_index);
+    if( next_image != null )
+      {
+      if( next_image.IsLoadingStarted && !next_image.IsLoaded )
+        next_image.CancelLoading();
+       else
+        {
+        stop_fading();
+        next_image.Visible= false;
+        }
+      }      
+
+    next_image_index= image_index;
+    next_image= GetLargeImage(next_image_index);
+    slide_show.previews.SelectImage(next_image_index);
+
+    if( next_image.IsLoaded )
+      {
+      next_image_is_loaded();
+      return;
+      }
+
+    if( roller == null )
+      {
+      roller= new FirefoxRoller();
+      this.Controls.Add(roller);
+      roller.Location= new Point(3,-21);
+      roller.Color= Color.Black;
+      }
+
+    GetImage(next_image_index).StartLoadingImage();
+    if( loading_timer == null )
+      {
+      loading_timer= new PlayerTimer();
+      loading_timer.Tick += new EventHandler(on_loading_timer);
+      loading_timer.Start();
+      }
+    }    
+
+  void on_loading_timer( object sender, EventArgs e )
+    {
+    if( roller != null )
+      roller.OnTimer();
+      
+    LargeImage next_image= GetLargeImage(next_image_index);
+    if( next_image == null )
+      {
+      loading_timer.Stop();
+      loading_timer= null;
+      
+      roller.Dispose();
+      roller= null;
+      return;
+      }
+
+    if( next_image.IsLoaded )
+      {
+      loading_timer.Stop();
+      loading_timer= null;
+
+      roller.Dispose();
+      roller= null;
+      
+      next_image.Location= new Point( (this.Width -next_image.ImageWidth)/2,
+                                      (this.Height-next_image.ImageHeight)/2 );
+      next_image.Visible= true;
+      next_image_is_loaded();
+
+      return;
+      }
+    }
+
+  void next_image_is_loaded()
+    {
+    alpha_anim= new AnimatedInteger(0);
+    alpha_anim.FinalValue= 255;
+    alpha_anim.Speed= 0.6;
+    
+    LargeImage curr_image= GetLargeImage(curr_image_index);
+    LargeImage next_image= GetLargeImage(next_image_index);
+
+    if( curr_image != null )
+      curr_image.Alpha= 255;
+    next_image.Alpha= 0;
+
+    next_image.Location= new Point( (this.Width -next_image.ImageWidth)/2,
+                                    (this.Height-next_image.ImageHeight)/2 );
+    next_image.Visible= true;
+
+    if( fading_timer == null )
+      {
+      fading_timer= new PlayerTimer();
+      fading_timer.Tick += new EventHandler(on_fading_timer);
+      fading_timer.Start();
+      }
+    }
+    
+  void stop_fading()
+    {
+    if( fading_timer != null )
+      {
+      fading_timer.Stop();
+      fading_timer= null;
+      }
+    
+    alpha_anim= null;
+    }
+  
+  void on_fading_timer( object sender, EventArgs e )
+    {
+    alpha_anim.OnTimer();
+    
+    LargeImage curr_image= GetLargeImage(curr_image_index);
+    LargeImage next_image= GetLargeImage(next_image_index);
+
+    if( curr_image != null )
+      curr_image.Alpha= 255-alpha_anim.Value;
+    next_image.Alpha= alpha_anim.Value;
+
+    if( !alpha_anim.IsAnimating )
+      {
+      stop_fading();
+
+      if( curr_image != null )
+        {
+        if( curr_image.Focused )
+          next_image.Focus();
+
+        curr_image.Alpha= 0;
+        curr_image.Visible= false;
+        }
+
+      curr_image_index= next_image_index;
+      next_image_index= -1;
+      return;
+      }
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////

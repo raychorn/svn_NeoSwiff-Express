@@ -1,0 +1,93 @@
+using System;
+using System.Diagnostics;
+using System.Drawing;
+using System.Windows.Forms;
+
+/////////////////////////////////////////////////////////////////////////////
+
+public class SlideShow: System.Windows.Forms.Form
+{
+  public ImagesList images= null;
+  public Previews previews= null;
+  public ImagePanel image_panel= null;
+  
+  public SlideShow()
+    {
+    InitializeComponent();
+
+    this.Size= new Size(600,500);
+
+    previews= new Previews();
+    previews.Size= new Size( this.Width - 100, 100 );
+    previews.Location= new Point( (this.Width - previews.Width)/2,
+                                  Application.Height - previews.Height - 30);
+    previews.BackColor= Color.White;
+
+//    int image_panel_margin= 5;
+    image_panel= new ImagePanel(this);
+    image_panel.Size= new Size( Application.Width - 2*17,
+                                previews.Top - 17 - 25 );
+    image_panel.Location= new Point( 17, 17+25 );
+
+    this.Controls.Add(previews);
+    this.Controls.Add(image_panel);
+
+    images= new ImagesList();
+
+    Random rnd= null;
+    //Random rnd= new Random();
+    for( int i= 1; i <= 27; ++i )
+      {
+      string url= "http://www.globfx.com/products/neoswiff/samples/resources/image.php?index="+i;
+      if( rnd != null )
+        url += "&rnd="+rnd.Next(100000);
+        
+      string preview_url= url + "&preview=true";
+      string large_url= url;
+
+      images.Add( this, i, preview_url, large_url );
+      }
+
+    previews.Create(images);
+    }
+
+  protected override void OnCreateControl()
+    {
+    image_panel.ViewImage(0);
+
+    previews.StartLoadingPreviews();
+    previews.Focus();
+
+    base.OnCreateControl();
+    }
+
+  private void InitializeComponent()
+    {}
+  
+  protected override void OnPaint( PaintEventArgs e )
+    {
+    Visual v= this.Visual;
+    v.BeginVerticalGradientFill( 0xF8F8F8, 255, 0xDCDCDC, 255, 0, this.Height );
+      v.DrawRectangle(0,0,this.Width,this.Height);
+    v.EndFill();
+
+    v.BeginSolidFill( 0xB5B5B5 );
+      v.DrawRoundedRectangle(15,15,this.Width-30,this.Height-30,6);
+    v.EndFill();
+
+    v.BeginSolidFill( 0xFFFFFF );
+      v.DrawRoundedRectangle(16,16,this.Width-32,this.Height-32,5);
+    v.EndFill();
+
+    v.BeginVerticalGradientFill( 0xEEEEEE, 255, 0xE5E3E4, 255, 17, 25 );
+      v.DrawRoundedRectangle(17,17,this.Width-34,25,4);
+    v.EndFill();
+    }
+
+  static void Main()
+    {
+    Application.Run( new SlideShow() );
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////

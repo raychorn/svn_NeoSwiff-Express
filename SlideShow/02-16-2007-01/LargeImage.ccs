@@ -1,0 +1,156 @@
+using System;
+using System.Diagnostics;
+using System.Drawing;
+using System.Windows.Forms;
+
+/////////////////////////////////////////////////////////////////////////////
+
+public class LargeImage: Control
+{
+  int image_width= 0;
+  int image_height= 0;
+  
+  string url= null;
+
+  AsyncImage image= null;
+
+  public LargeImage()
+    {
+    base.SetStyle( ControlStyles.Opaque, true );
+    }
+
+  public bool IsLoadingStarted
+    {
+    get
+      {
+      return image != null;
+      }
+    }
+
+  public bool IsLoaded
+    {
+    get
+      {
+      return image != null && image.IsLoadCompleted;
+      }
+    }
+    
+  public void StartLoading( string url )
+    {
+    this.Visible= false;
+    
+    Debug.Assert( image == null );
+    image= new AsyncImage( this.Visual, 0, 0 );
+    image.LoadTimeout= -1;
+    image.LoadStateChanged += new EventHandler(on_loading_state);
+    image.Load(url);
+    }
+
+  public void CancelLoading()
+    {
+    if( image == null )
+      return;
+
+    image.Dispose();
+    image= null;
+    }
+
+  private void on_loading_state( object sender, EventArgs e )
+    {
+//Debug.WriteLine( "on_loading_state: "+image.LoadState );
+    switch( image.LoadState )
+      {
+      case LoadState.Completed:
+        image_width= image.ImageWidth;
+        image_height= image.ImageHeight;
+        Invalidate();
+        break;
+      case LoadState.Timeout:
+      case LoadState.Error:
+        image.Dispose();
+        image= null;
+        break;
+      }
+    }
+
+  public int ImageWidth
+    {
+    get
+      {
+      return image_width;
+      }
+    }
+
+  public int ImageHeight
+    {
+    get
+      {
+      return image_height;
+      }
+    }
+
+  public int Alpha
+    {
+    get
+      {
+      return this.Visual.Alpha;
+      }      
+    set
+      {
+      this.Visual.Alpha= value;
+      }      
+    }
+
+  protected override void OnPaint( PaintEventArgs e )
+    {
+    if( image_width <= 0 || image_height <= 0 )
+      return;
+      
+    Visual v= this.Visual;
+
+    int a= 45;
+    int d= 0;
+    int r= 5;
+
+    v.BeginSolidFill(0x000000,a);
+      v.DrawRoundedRectangle( 4+d, 4+d, this.ImageWidth, this.ImageHeight, r );
+    v.EndFill();
+
+    v.BeginSolidFill(0x000000,a);
+      v.DrawRoundedRectangle( 5+d, 5+d, this.ImageWidth-2, this.ImageHeight-2, r );
+    v.EndFill();
+
+    v.BeginSolidFill(0x000000,a);
+      v.DrawRoundedRectangle( 6+d, 6+d, this.ImageWidth-4, this.ImageHeight-4, r );
+    v.EndFill();
+
+    v.BeginSolidFill(0x000000,a);
+      v.DrawRoundedRectangle( 7+d, 7+d, this.ImageWidth-6, this.ImageHeight-6, r );
+    v.EndFill();
+    }
+
+  protected override bool IsInputKey( Keys keyData )
+    {
+    if( (int)(keyData & Keys.Alt) != 0 )
+      return false;
+      
+    Keys key= (keyData & Keys.KeyCode);
+    if( key == Keys.Right ||
+        key == Keys.Left )
+      return true;
+      
+    return base.IsInputKey(keyData);
+    }
+
+  protected override void OnKeyDown( KeyEventArgs e )
+    {
+    ImagePanel panel= (ImagePanel) this.Parent;
+   
+    if( e.KeyCode == Keys.Right )
+      panel.ViewNextImage();
+    else if( e.KeyCode == Keys.Left )
+      panel.ViewPrevImage();
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////

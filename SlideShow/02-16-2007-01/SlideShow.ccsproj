@@ -1,0 +1,119 @@
+<DioneProject>
+    <SCC
+        ProductVersion = "1"
+        SchemaVersion = "100"
+        ProjectGuid = "{5290D002-5ADD-4E72-BDAA-997D4BB4A46D}"
+    >
+        <Build>
+            <Settings
+                AssemblyName = "SlideShow"
+                RootNamespace = "SlideShow"
+                OutputType = "Application"
+                MovieBackground = "#ffffff"
+                MovieCompress = "true"
+                MovieFrameRate = "40"
+                MovieHeight = "500"
+                MovieWidth = "600"
+            >
+                <Config
+                    Name = "Debug"
+                    Platform = "Flash 7-8"
+                    OutputPath = "bin\Debug\"
+                    Optimize = "true"
+                    Debug = "true"
+                    TreatWarningsAsErrors = "false"
+                    WarningLevel = "1"
+                    AdditionalCommandLineOptions = ""
+                    DefineConstants = "DEBUG"
+                    PlatformTarget = "SwfVM1"
+                />
+                <Config
+                    Name = "Release"
+                    Platform = "Flash 7-8"
+                    OutputPath = "bin\Release\"
+                    Optimize = "true"
+                    Debug = "false"
+                    TreatWarningsAsErrors = "false"
+                    WarningLevel = "1"
+                    AdditionalCommandLineOptions = ""
+                    DefineConstants = ""
+                    PlatformTarget = "SwfVM1"
+                />
+                <Config
+                    Name = "Debug"
+                    Platform = "Flash 9"
+                    OutputPath = "bin\Debug\"
+                    Optimize = "true"
+                    Debug = "true"
+                    TreatWarningsAsErrors = "false"
+                    WarningLevel = "1"
+                    AdditionalCommandLineOptions = ""
+                    DefineConstants = "DEBUG"
+                    PlatformTarget = "SwfVM2"
+                />
+                <Config
+                    Name = "Release"
+                    Platform = "Flash 9"
+                    OutputPath = "bin\Release\"
+                    Optimize = "true"
+                    Debug = "false"
+                    TreatWarningsAsErrors = "false"
+                    WarningLevel = "1"
+                    AdditionalCommandLineOptions = ""
+                    DefineConstants = ""
+                    PlatformTarget = "SwfVM2"
+                />
+            </Settings>
+            <References>
+                <Reference
+                    Name = "System"
+                    AssemblyName = "System"
+                />
+                <Reference
+                    Name = "System.Drawing"
+                    AssemblyName = "System.Drawing"
+                />
+                <Reference
+                    Name = "System.Windows.Forms"
+                    AssemblyName = "System.Windows.Forms"
+                />
+            </References>
+        </Build>
+        <Files>
+            <Include>
+                <File
+                    RelPath = "FirefoxRoller.ccs"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "ImageItem.ccs"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "ImagePanel.ccs"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "ImagesList.ccs"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "LargeImage.ccs"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "PreviewImage.ccs"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "Previews.ccs"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "SlideShow.ccs"
+                    BuildAction = "Compile"
+                />
+            </Include>
+        </Files>
+    </SCC>
+</DioneProject>

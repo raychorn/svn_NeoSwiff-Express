@@ -1,0 +1,84 @@
+using System;
+using System.Diagnostics;
+
+/////////////////////////////////////////////////////////////////////////////
+
+public class ImageItem
+{
+  SlideShow slide_show;
+  
+  PreviewImage preview;
+  LargeImage large;
+  
+  string image_url= null;
+  string preview_url= null;
+
+  public ImageItem( SlideShow slide_show,
+                    int image_index,
+                    string preview_url,
+                    string image_url )
+    {
+    Debug.Assert( preview_url != null );
+    Debug.Assert( image_url != null );
+    
+    this.preview_url= preview_url;
+    this.image_url= image_url;
+    this.slide_show= slide_show;
+    
+    preview= new PreviewImage(image_index);
+    preview.Click += new EventHandler(on_preview_click);
+
+    large= new LargeImage();
+    
+    slide_show.previews.Controls.Add(preview);
+    slide_show.image_panel.Controls.Add(large);
+    }
+
+  public PreviewImage Preview
+    {
+    get
+      {
+      return preview;
+      }
+    }
+
+  public LargeImage Large
+    {
+    get
+      {
+      return large;
+      }
+    }
+
+  void on_preview_click( object sender, EventArgs e )
+    {
+    PreviewImage preview_image= (PreviewImage) sender;
+
+    int image_index= preview_image.ImageIndex-1;
+
+    slide_show.image_panel.ViewImage(image_index);
+    
+    slide_show.previews.Focus();
+    }
+
+  public void StartLoadingPreview()
+    {
+    if( preview.IsLoadingStarted )
+      return;
+
+    preview.StartLoading(preview_url);
+    }
+
+  public void StartLoadingImage()
+    {
+    if( large.IsLoadingStarted )
+      return;
+
+    //Debug.WriteLine(preview_url);
+    //Debug.WriteLine(image_url);
+
+    large.StartLoading(image_url);
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////

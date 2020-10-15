@@ -1,0 +1,130 @@
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+/////////////////////////////////////////////////////////////////////////////
+
+public class Previews: Control
+{
+  ImagesList images= null;
+  int selected_index= -1;
+  
+  public Previews()
+    {}
+
+  public int SelectedImage
+    {
+    get
+      {
+      return selected_index;
+      }
+    }
+    
+  public void SelectImage( int _selected_index )
+    {
+    if( selected_index == _selected_index )
+      return;
+
+    int old= selected_index;
+    selected_index= _selected_index;
+
+    if( old >= 0 )
+      this.images[old].Preview.Invalidate();
+    
+    if( selected_index >= 0 )
+      this.images[selected_index].Preview.Invalidate();
+    }
+      
+  public void Create( ImagesList images )
+    {
+    this.images= images;
+    
+    int xmargin= PreviewImage.PreviewWidth / 4;
+    int ymargin= PreviewImage.PreviewHeight / 4;
+
+    int preview_width = PreviewImage.PreviewWidth +xmargin;
+    int preview_height= PreviewImage.PreviewHeight+ymargin;
+    
+    int nx= this.Width / preview_width;
+    int ny= this.Height/ preview_height;
+
+    int max_ny= (images.Count+nx-1) / nx;
+
+    if( nx <= 0 )
+      nx= 1;
+    if( ny <= 0 )
+      ny= 1;
+
+    int dx= (this.Width - (nx*preview_width - xmargin)) / 2;
+    int dy= (this.Height- (max_ny*preview_height- ymargin)) / 2;
+
+    for( int k= 0; k < images.Count; ++k )
+      {
+      int j= k / nx;
+      int i= k % nx;
+
+      ImageItem item= images[k];
+
+      item.Preview.Location= new Point( dx + i*preview_width,
+                                        dy + j*preview_height );
+      }
+    }
+
+  public void StartLoadingPreviews()
+    {
+    for( int i= 0; i < images.Count; ++i )
+      images[i].StartLoadingPreview();
+    }
+
+  protected override void OnPaint( PaintEventArgs e )
+    {
+//    Visual v= this.Visual;
+/*    
+    v.BeginSolidFill(0xE5E3E4);
+      v.DrawFrame( ClientRectangle, 2 );
+    v.EndFill();
+
+    Size size= ClientSize;
+
+    int d= 2;
+    int a= 80;
+    v.BeginHorizontalGradientFill( 0x000000, a,
+                                   0x000000, 0,
+                                   size.Width, d );
+      v.DrawRectangle( size.Width, 0, d, size.Height );
+    v.EndFill();                          
+
+    v.BeginVerticalGradientFill( 0x000000, a,
+                                 0x000000, 0,
+                                 size.Height, d );
+      v.DrawRectangle( 0, size.Height, size.Width, d );
+    v.EndFill();                          
+*/
+    }
+
+  protected override bool IsInputKey( Keys keyData )
+    {
+    if( (int)(keyData & Keys.Alt) != 0 )
+      return false;
+      
+    Keys key= (keyData & Keys.KeyCode);
+    if( key == Keys.Right ||
+        key == Keys.Left )
+      return true;
+      
+    return base.IsInputKey(keyData);
+    }
+
+  protected override void OnKeyDown( KeyEventArgs e )
+    {
+    SlideShow ss= (SlideShow) this.Parent;
+    ImagePanel panel= ss.image_panel;
+   
+    if( e.KeyCode == Keys.Right )
+      panel.ViewNextImage();
+    else if( e.KeyCode == Keys.Left )
+      panel.ViewPrevImage();
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////
